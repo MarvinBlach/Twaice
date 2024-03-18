@@ -123,15 +123,17 @@ function populateFilters(categories) {
     const selectedType = document.querySelector('[p_type-of-employment]').value.trim();
     const selectedLocation = document.querySelector('[p_location-filter]').value.trim();
 
+    let totalVisibleJobs = 0; // Track the total number of visible jobs after filtering
+
     const allAccordions = document.querySelectorAll('.accordion-item');
     allAccordions.forEach(accordion => {
         let visibleJobs = 0;
 
-        const category = accordion.querySelector('[p_type-of-employment-text]').textContent.trim(); // Corrected to match the provided structure
+        const category = accordion.querySelector('[p_type-of-employment-text]').textContent.trim(); // Use the corrected structure
         const jobs = accordion.querySelectorAll('.accordion_list');
 
         jobs.forEach(job => {
-            const jobLocation = job.querySelector('[p_location-filter-text]').textContent.trim(); // Corrected to use the attribute for location
+            const jobLocation = job.querySelector('[p_location-filter-text]').textContent.trim(); // Use the corrected structure for location
 
             // Check if the accordion's category matches the selected type, and job location matches the selected location
             if ((selectedType === '' || category.toLowerCase() === selectedType.toLowerCase()) && 
@@ -143,13 +145,23 @@ function populateFilters(categories) {
             }
         });
 
-        // Update accordion visibility based on visible jobs
+        // Update accordion visibility and job counts
         accordion.style.display = visibleJobs > 0 ? '' : 'none';
-        // Update the job counts dynamically
         const jobCountDiv = accordion.querySelector('.quantity_wrapper div');
         jobCountDiv.textContent = `${visibleJobs} Jobs`;
+
+        totalVisibleJobs += visibleJobs; // Update the total count of visible jobs
     });
+
+    // Display the "No results found" message if there are no visible jobs after filtering
+    const noResultsDiv = document.querySelector('.no_reults-found');
+    if (totalVisibleJobs === 0) {
+        noResultsDiv.style.display = 'block'; // Show the "No results found" message
+    } else {
+        noResultsDiv.style.display = 'none'; // Hide the message if there are visible jobs
+    }
 }
+
 
   
   
@@ -176,18 +188,32 @@ function populateFilters(categories) {
   
   
 
-    document.addEventListener('DOMContentLoaded', (event) => {
-        // Listen for clicks on the document
-        document.addEventListener('click', function(e) {
-          // Check if the clicked element has the class 'accordion-item-trigger'
-          if (e.target.classList.contains('accordion-item-trigger')) {
-            // Find the next sibling with the class 'accordion-item-content'
-            const content = e.target.nextElementSibling;
-            
-            // Toggle the 'is-open' class on the content
+  document.addEventListener('DOMContentLoaded', (event) => {
+    // Listen for clicks on the document
+    document.addEventListener('click', function(e) {
+        // Check if the clicked element or its parent has the class 'accordion-item-trigger'
+        let trigger = null;
+        if (e.target.classList.contains('accordion-item-trigger')) {
+            trigger = e.target;
+        } else if (e.target.parentElement && e.target.parentElement.classList.contains('accordion-item-trigger')) {
+            trigger = e.target.parentElement;
+        }
+
+        if (trigger) {
+            // Toggle the 'is-open' class on the trigger itself
+            trigger.classList.toggle('is-open');
+
+            // Find the next sibling with the class 'accordion-item-content' and toggle 'is-open' on it
+            const content = trigger.nextElementSibling;
             if (content) {
-              content.classList.toggle('is-open');
+                content.classList.toggle('is-open');
             }
-          }
-        });
-      });  
+
+            // Find the icon within the trigger and toggle 'is-open' on it
+            const icon = trigger.querySelector('.icon-embed-xsmall');
+            if (icon) {
+                icon.classList.toggle('is-open');
+            }
+        }
+    });
+});
