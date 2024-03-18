@@ -38,7 +38,7 @@ function processXML(xml) {
     for (let category in categories) {
       html += `<div class="accordion-item">
                  <div class="accordion-item-trigger" style="background-color: rgb(104, 111, 125);">
-                   <h4 class="text-size-regular">${category}</h4>
+                   <h4 p_type-of-employment-text class="text-size-regular">${category}</h4>
                    <div class="quantity_wrapper">
                      <div>${categories[category].length} Jobs</div>
                      <!-- Add accordion icon here -->
@@ -55,7 +55,7 @@ function processXML(xml) {
                          <div class="accordion_list-inner">
                            <div class="text-size-small">${job.recruitingCategory}</div>
                            <div class="text-size-small">, </div>
-                           <div class="text-size-small is-job">${job.location}</div>
+                           <div p_location-filter-text class="text-size-small is-job">${job.location}</div>
                          </div>
                        </div>
                        <div class="icon-embed-xsmall w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 25" fill="none" preserveAspectRatio="xMidYMid meet" aria-hidden="true" role="img">
@@ -78,59 +78,99 @@ function processXML(xml) {
     nestElement.innerHTML = html;
   }
 
- // This function populates the type of employment select field
-function populateEmploymentTypeSelectField(categories) {
-  const selectField = document.querySelector('[p_type-of-employment]');
-  // Ensure the select field exists
-  if (selectField) {
-    for (let category in categories) {
-      const option = document.createElement('option');
-      option.value = category;
-      option.textContent = category;
-      selectField.appendChild(option);
+ // This function populates the select fields for both type of employment and location
+function populateFilters(categories) {
+    const typeSelectField = document.querySelector('[p_type-of-employment]');
+    const locationSelectField = document.querySelector('[p_location-filter]');
+    const locations = new Set();
+  
+    // Populate type of employment select field
+    if (typeSelectField) {
+      for (let category in categories) {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        typeSelectField.appendChild(option);
+      }
+    } else {
+      console.error('Select field with [p_type-of-employment] not found.');
     }
-  } else {
-    console.error('Select field with [p_type-of-employment] not found.');
+  
+    // Collect locations from each category to populate location select field
+    Object.values(categories).forEach(category => {
+      category.forEach(job => {
+        locations.add(job.location); // Assuming 'location' is a property of job
+      });
+    });
+  
+    // Ensure the location select field exists
+    if (locationSelectField) {
+      locations.forEach(location => {
+        const option = document.createElement('option');
+        option.value = location;
+        option.textContent = location;
+        locationSelectField.appendChild(option);
+      });
+    } else {
+      console.error('Select field with [p_location-filter] not found.');
+    }
   }
-}
+  
+  function applyFilters() {
+    const selectedType = document.querySelector('[p_type-of-employment]').value.trim();
+    const selectedLocation = document.querySelector('[p_location-filter]').value.trim();
 
-// This function filters job listings by the selected category
-function filterJobListingsByCategory(selectedCategory) {
     const allAccordions = document.querySelectorAll('.accordion-item');
     allAccordions.forEach(accordion => {
-      // Extract the category title text
-      const categoryTitle = accordion.querySelector('.accordion-item-trigger h4').textContent;
-  
-      // Compare the accordion's category with the selected category and show/hide accordingly
-      if (!selectedCategory || categoryTitle === selectedCategory) {
-        accordion.style.display = '';
-      } else {
-        accordion.style.display = 'none';
-      }
+        let visibleJobs = 0;
+
+        const category = accordion.querySelector('[p_type-of-employment-text]').textContent.trim(); // Corrected to match the provided structure
+        const jobs = accordion.querySelectorAll('.accordion_list');
+
+        jobs.forEach(job => {
+            const jobLocation = job.querySelector('[p_location-filter-text]').textContent.trim(); // Corrected to use the attribute for location
+
+            // Check if the accordion's category matches the selected type, and job location matches the selected location
+            if ((selectedType === '' || category.toLowerCase() === selectedType.toLowerCase()) && 
+                (selectedLocation === '' || jobLocation.toLowerCase().includes(selectedLocation.toLowerCase()))) {
+                job.style.display = '';
+                visibleJobs++;
+            } else {
+                job.style.display = 'none';
+            }
+        });
+
+        // Update accordion visibility based on visible jobs
+        accordion.style.display = visibleJobs > 0 ? '' : 'none';
+        // Update the job counts dynamically
+        const jobCountDiv = accordion.querySelector('.quantity_wrapper div');
+        jobCountDiv.textContent = `${visibleJobs} Jobs`;
     });
-  }
+}
+
+  
   
   document.addEventListener('DOMContentLoaded', () => {
-    const selectField = document.querySelector('[p_type-of-employment]');
+    // Add event listeners for both filters
+    const typeSelectField = document.querySelector('[p_type-of-employment]');
+    const locationSelectField = document.querySelector('[p_location-filter]');
   
-    if (selectField) {
-      // Add the event listener to the select field for the 'change' event
-      selectField.addEventListener('change', function(e) {
-        // Call the filter function with the new selected value
-        filterJobListingsByCategory(e.target.value);
-      });
+    if (typeSelectField && locationSelectField) {
+      typeSelectField.addEventListener('change', applyFilters);
+      locationSelectField.addEventListener('change', applyFilters);
     }
   
-    // Fetch and process the XML, then populate the select field and insert HTML into the DOM
+    // Fetch and process the XML, then populate the select fields and insert HTML into the DOM
     fetchXMLData('https://twaice.jobs.personio.com/xml')
       .then(xml => {
         const categories = processXML(xml);
-        populateEmploymentTypeSelectField(categories); // Call this only after the select field is guaranteed to exist
+        populateFilters(categories); // Updated to handle both filters
         const html = generateHTMLForCategories(categories);
         insertHTMLIntoDOM(html);
       })
       .catch(error => console.error('Error fetching or processing XML:', error));
   });
+  
   
 
     document.addEventListener('DOMContentLoaded', (event) => {
