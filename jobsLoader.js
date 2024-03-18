@@ -18,6 +18,7 @@ function processXML(xml) {
       const employmentType = position.getElementsByTagName('employmentType')[0].textContent;
       const location = position.getElementsByTagName('office')[0].textContent;
       const recruitingCategory = position.getElementsByTagName('recruitingCategory')[0].textContent;
+      const schedule = position.getElementsByTagName('schedule')[0].textContent; // Capture schedule information
   
       // Create category if it doesn't exist
       if (!categories[category]) {
@@ -25,7 +26,7 @@ function processXML(xml) {
       }
   
       // Add job to the category
-      categories[category].push({ id, title, employmentType, location, recruitingCategory });
+      categories[category].push({ id, title, employmentType, location, recruitingCategory, schedule });
     }
   
     return categories;
@@ -53,8 +54,10 @@ function processXML(xml) {
                        <div>
                          <h4 class="heading-small text-weight-normal">${job.title}</h4>
                          <div class="accordion_list-inner">
-                           <div class="text-size-small">${job.recruitingCategory}</div>
-                           <div class="text-size-small">, </div>
+                         <div class="text-size-small">${job.recruitingCategory}</div>
+                         <div class="text-size-small">,  </div>
+                         <div class="text-size-small is-fest">${job.schedule}</div> <!-- Include schedule here -->
+                         <div class="text-size-small">, </div>
                            <div p_location-filter-text class="text-size-small is-job">${job.location}</div>
                          </div>
                        </div>
