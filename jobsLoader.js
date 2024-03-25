@@ -179,7 +179,31 @@ function populateFilters(categories) {
 }
 
 
+function updateJobCountsByCity(categories) {
+    let munichJobs = 0;
+    let parisJobs = 0;
+    let chicagoJobs = 0;
 
+    // Loop through each category
+    for (let category in categories) {
+        // Loop through each job in the category
+        categories[category].forEach(job => {
+            // Increment the job count for the corresponding city
+            if (job.location === 'München') {
+                munichJobs++;
+            } else if (job.location === 'Paris') {
+                parisJobs++;
+            } else if (job.location === 'Chicago') {
+                chicagoJobs++;
+            }
+        });
+    }
+
+    // Update the job counts in the corresponding elements
+    document.querySelector('[munich-jobs]').textContent = `${munichJobs} open ${munichJobs === 1 ? 'Position' : 'Positions'}`;
+    document.querySelector('[paris-jobs]').textContent = `${parisJobs} open ${parisJobs === 1 ? 'Position' : 'Positions'}`;
+    document.querySelector('[chicago-jobs]').textContent = `${chicagoJobs} open ${chicagoJobs === 1 ? 'Position' : 'Positions'}`;
+}
   
   
   document.addEventListener('DOMContentLoaded', () => {
@@ -194,14 +218,16 @@ function populateFilters(categories) {
   
     // Fetch and process the XML, then populate the select fields and insert HTML into the DOM
     fetchXMLData('https://twaice.jobs.personio.com/xml')
-      .then(xml => {
-        const categories = processXML(xml);
-        populateFilters(categories); // Updated to handle both filters
-        const html = generateHTMLForCategories(categories);
-        insertHTMLIntoDOM(html);
-      })
-      .catch(error => console.error('Error fetching or processing XML:', error));
-  });
+        .then(xml => {
+            const categories = processXML(xml);
+            populateFilters(categories); // Updated to handle both filters
+            const html = generateHTMLForCategories(categories);
+            insertHTMLIntoDOM(html);
+            updateJobCountsByCity(categories); // Add this line
+            setupCityFilters();
+        })
+        .catch(error => console.error('Error fetching or processing XML:', error));
+    });
   
   
 
@@ -234,3 +260,47 @@ function populateFilters(categories) {
         }
     });
 });
+
+function setupCityFilters() {
+    // Get the location select field
+    const locationSelectField = document.querySelector('[p_location-filter]');
+
+    // Check if the location select field exists
+    if (locationSelectField) {
+        // Get the city filter elements
+        const munichFilter = document.querySelector('[munich-filter]');
+        const parisFilter = document.querySelector('[paris-filter]');
+        const chicagoFilter = document.querySelector('[chicago-filter]');
+
+        // Add click event listeners to the city filter elements
+        if (munichFilter) {
+            munichFilter.addEventListener('click', () => {
+                if (document.querySelector('[munich-jobs]').textContent === '0 open Positions') {
+                    return;
+                }
+                locationSelectField.value = 'München';
+                applyFilters();
+            });
+        }
+
+        if (parisFilter) {
+            parisFilter.addEventListener('click', () => {
+                if (document.querySelector('[paris-jobs]').textContent === '0 open Positions') {
+                    return;
+                }
+                locationSelectField.value = 'Paris';
+                applyFilters();
+            });
+        }
+
+        if (chicagoFilter) {
+            chicagoFilter.addEventListener('click', () => {
+                if (document.querySelector('[chicago-jobs]').textContent === '0 open Positions') {
+                    return;
+                }
+                locationSelectField.value = 'Remote (US)';
+                applyFilters();
+            });
+        }
+    }
+}
