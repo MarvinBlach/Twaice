@@ -86,38 +86,45 @@ function populateFilters(categories) {
     const typeSelectField = document.querySelector('[p_type-of-employment]');
     const locationSelectField = document.querySelector('[p_location-filter]');
     const locations = new Set();
-  
+
     // Populate type of employment select field
     if (typeSelectField) {
-      for (let category in categories) {
-        const option = document.createElement('option');
-        option.value = category;
-        option.textContent = category;
-        typeSelectField.appendChild(option);
-      }
+        for (let category in categories) {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            typeSelectField.appendChild(option);
+        }
     } else {
-      console.error('Select field with [p_type-of-employment] not found.');
+        console.error('Select field with [p_type-of-employment] not found.');
     }
-  
+
     // Collect locations from each category to populate location select field
     Object.values(categories).forEach(category => {
-      category.forEach(job => {
-        locations.add(job.location); // Assuming 'location' is a property of job
-      });
+        category.forEach(job => {
+            locations.add(job.location); // Assuming 'location' is a property of job
+        });
     });
-  
+
     // Ensure the location select field exists
     if (locationSelectField) {
-      locations.forEach(location => {
-        const option = document.createElement('option');
-        option.value = location;
-        option.textContent = location;
-        locationSelectField.appendChild(option);
-      });
+        // Add non-dynamic "Remote" filter
+        const remoteOption = document.createElement('option');
+        remoteOption.value = 'Remote';
+        remoteOption.textContent = 'Remote';
+        locationSelectField.appendChild(remoteOption);
+
+        // Add dynamic location filters
+        locations.forEach(location => {
+            const option = document.createElement('option');
+            option.value = location;
+            option.textContent = location;
+            locationSelectField.appendChild(option);
+        });
     } else {
-      console.error('Select field with [p_location-filter] not found.');
+        console.error('Select field with [p_location-filter] not found.');
     }
-  }
+}
   
   function applyFilters() {
     const selectedType = document.querySelector('[p_type-of-employment]').value.trim();
@@ -183,6 +190,7 @@ function updateJobCountsByCity(categories) {
     let munichJobs = 0;
     let parisJobs = 0;
     let chicagoJobs = 0;
+    let remoteJobs = 0;
 
     // Loop through each category
     for (let category in categories) {
@@ -195,6 +203,8 @@ function updateJobCountsByCity(categories) {
                 parisJobs++;
             } else if (job.location === 'Chicago') {
                 chicagoJobs++;
+            } else if (job.location.includes('Remote')) {
+                remoteJobs++;
             }
         });
     }
@@ -203,6 +213,7 @@ function updateJobCountsByCity(categories) {
     document.querySelector('[munich-jobs]').textContent = `${munichJobs} open ${munichJobs === 1 ? 'Position' : 'Positions'}`;
     document.querySelector('[paris-jobs]').textContent = `${parisJobs} open ${parisJobs === 1 ? 'Position' : 'Positions'}`;
     document.querySelector('[chicago-jobs]').textContent = `${chicagoJobs} open ${chicagoJobs === 1 ? 'Position' : 'Positions'}`;
+    document.querySelector('[remote-jobs]').textContent = `${remoteJobs} open ${remoteJobs === 1 ? 'Position' : 'Positions'}`;
 }
   
   
@@ -271,6 +282,7 @@ function setupCityFilters() {
         const munichFilter = document.querySelector('[munich-filter]');
         const parisFilter = document.querySelector('[paris-filter]');
         const chicagoFilter = document.querySelector('[chicago-filter]');
+        const remoteFilter = document.querySelector('[remote-filter]'); // New remote filter
 
         // Add click event listeners to the city filter elements
         if (munichFilter) {
@@ -298,7 +310,18 @@ function setupCityFilters() {
                 if (document.querySelector('[chicago-jobs]').textContent === '0 open Positions') {
                     return;
                 }
-                locationSelectField.value = 'Remote (US)';
+                locationSelectField.value = 'Chicago';
+                applyFilters();
+            });
+        }
+
+        // New remote filter event listener
+        if (remoteFilter) {
+            remoteFilter.addEventListener('click', () => {
+                if (document.querySelector('[remote-jobs]').textContent === '0 open Positions') {
+                    return;
+                }
+                locationSelectField.value = 'Remote';
                 applyFilters();
             });
         }
