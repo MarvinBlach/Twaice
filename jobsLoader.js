@@ -129,13 +129,12 @@ function populateFilters(categories) {
     allAccordions.forEach(accordion => {
         let visibleJobs = 0;
 
-        const category = accordion.querySelector('[p_type-of-employment-text]').textContent.trim(); // Use the corrected structure
+        const category = accordion.querySelector('[p_type-of-employment-text]').textContent.trim();
         const jobs = accordion.querySelectorAll('.accordion_list');
 
         jobs.forEach(job => {
-            const jobLocation = job.querySelector('[p_location-filter-text]').textContent.trim(); // Use the corrected structure for location
+            const jobLocation = job.querySelector('[p_location-filter-text]').textContent.trim();
 
-            // Check if the accordion's category matches the selected type, and job location matches the selected location
             if ((selectedType === '' || category.toLowerCase() === selectedType.toLowerCase()) && 
                 (selectedLocation === '' || jobLocation.toLowerCase().includes(selectedLocation.toLowerCase()))) {
                 job.style.display = '';
@@ -145,10 +144,27 @@ function populateFilters(categories) {
             }
         });
 
-        // Update accordion visibility and job counts
+        // Update accordion visibility, job counts, and toggle is-open classes based on visibility
         accordion.style.display = visibleJobs > 0 ? '' : 'none';
         const jobCountDiv = accordion.querySelector('.quantity_wrapper div');
         jobCountDiv.textContent = `${visibleJobs} Jobs`;
+
+        // Toggle is-open class based on if jobs are visible or not
+        const trigger = accordion.querySelector('.accordion-item-trigger');
+        const content = accordion.querySelector('.accordion-item-content');
+        const icon = accordion.querySelector('.icon-embed-xsmall');
+
+        if (visibleJobs > 0) {
+            // Ensure accordion is marked as open
+            if(trigger && !trigger.classList.contains('is-open')) trigger.classList.add('is-open');
+            if(content && !content.classList.contains('is-open')) content.classList.add('is-open');
+            if(icon && !icon.classList.contains('is-open')) icon.classList.add('is-open');
+        } else {
+            // Ensure accordion is marked as closed
+            if(trigger && trigger.classList.contains('is-open')) trigger.classList.remove('is-open');
+            if(content && content.classList.contains('is-open')) content.classList.remove('is-open');
+            if(icon && icon.classList.contains('is-open')) icon.classList.remove('is-open');
+        }
 
         totalVisibleJobs += visibleJobs; // Update the total count of visible jobs
     });
@@ -156,11 +172,12 @@ function populateFilters(categories) {
     // Display the "No results found" message if there are no visible jobs after filtering
     const noResultsDiv = document.querySelector('.no_reults-found');
     if (totalVisibleJobs === 0) {
-        noResultsDiv.style.display = 'block'; // Show the "No results found" message
+        noResultsDiv.style.display = 'block';
     } else {
-        noResultsDiv.style.display = 'none'; // Hide the message if there are visible jobs
+        noResultsDiv.style.display = 'none';
     }
 }
+
 
 
   
