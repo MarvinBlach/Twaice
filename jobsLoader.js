@@ -6,31 +6,40 @@ function fetchXMLData(url) {
   }
   
   // This function processes the XML and returns job listings by category
-function processXML(xml) {
+  function processXML(xml) {
     const positions = xml.getElementsByTagName('position');
     const categories = {};
-  
+
     // Loop through each position and categorize
     for (let position of positions) {
-      const id = position.getElementsByTagName('id')[0].textContent;
-      const category = position.getElementsByTagName('department')[0].textContent;
-      const title = position.getElementsByTagName('name')[0].textContent;
-      const employmentType = position.getElementsByTagName('employmentType')[0].textContent;
-      const location = position.getElementsByTagName('office')[0].textContent;
-      const recruitingCategory = position.getElementsByTagName('recruitingCategory')[0].textContent;
-      const schedule = position.getElementsByTagName('schedule')[0].textContent; // Capture schedule information
-  
-      // Create category if it doesn't exist
-      if (!categories[category]) {
-        categories[category] = [];
-      }
-  
-      // Add job to the category
-      categories[category].push({ id, title, employmentType, location, recruitingCategory, schedule });
+        // Safely get text content or return null if not found
+        const safeTextContent = (elems) => elems.length > 0 ? elems[0].textContent : null;
+
+        const id = safeTextContent(position.getElementsByTagName('id'));
+        const category = safeTextContent(position.getElementsByTagName('department'));
+        const title = safeTextContent(position.getElementsByTagName('name'));
+        const employmentType = safeTextContent(position.getElementsByTagName('employmentType'));
+        const location = safeTextContent(position.getElementsByTagName('office'));
+        const recruitingCategory = safeTextContent(position.getElementsByTagName('recruitingCategory'));
+        const schedule = safeTextContent(position.getElementsByTagName('schedule')); // Capture schedule information
+
+        // Skip adding job if mandatory fields are missing
+        if (!id || !category || !title || !employmentType || !location || !recruitingCategory || !schedule) {
+            continue; // Skip this iteration if essential information is missing
+        }
+
+        // Create category if it doesn't exist
+        if (!categories[category]) {
+            categories[category] = [];
+        }
+
+        // Add job to the category
+        categories[category].push({ id, title, employmentType, location, recruitingCategory, schedule });
     }
-  
+
     return categories;
-  }
+}
+
   
   // This function generates HTML for the categories
   function generateHTMLForCategories(categories) {
