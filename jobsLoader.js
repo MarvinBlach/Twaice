@@ -210,7 +210,7 @@ function updateJobCountsByCity(categories) {
                 munichJobs++;
             } else if (job.location === 'Paris') {
                 parisJobs++;
-            } else if (job.location === 'Chicago') {
+            } else if (job.location.includes('Chicago')) {
                 chicagoJobs++;
             } else if (job.location.includes('Remote')) {
                 remoteJobs++;
